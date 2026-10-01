@@ -1,16 +1,39 @@
 package main
-import ("bufio"; "fmt"; "os"; "strconv")
 
-// type Shape interface { ... }
-// type Circle struct { ... }
-// func (c Circle) Area() float64 { ... }
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
 
 func main() {
-    sc := bufio.NewScanner(os.Stdin)
-    sc.Scan(); kind := sc.Text()
-    sc.Scan(); dim, _ := strconv.ParseFloat(sc.Text(), 64)
-    var s interface{ Area() float64 }
-    _ = kind; _ = dim
-    // s = ... based on kind
-    if s != nil { fmt.Printf("%.2f\n", s.Area()) }
+	sc := bufio.NewScanner(os.Stdin)
+	sc.Scan()
+	fields := strings.Fields(sc.Text())
+
+	a := make(chan int)
+	b := make(chan int)
+
+	go func() {
+		defer close(a)
+		for _, f := range fields {
+			n, _ := strconv.Atoi(f)
+			a <- n
+		}
+	}()
+
+	go func() {
+		defer close(b)
+		for n := range a {
+			b <- n * n
+		}
+	}()
+
+	sum := 0
+	for v := range b {
+		sum += v
+	}
+	fmt.Println(sum)
 }
