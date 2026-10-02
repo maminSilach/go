@@ -1,48 +1,29 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
+	"time"
 )
 
-type Shape interface {
-	Area() float64
-}
-
-type Circle struct {
-	Radius float64
-}
-
-type Square struct {
-	Side float64
-}
-
-func (c Circle) Area() float64 {
-	return 3.14 * c.Radius * c.Radius
-}
-
-func (s Square) Area() float64 {
-	return s.Side * s.Side
-}
-
 func main() {
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Scan()
-	kind := sc.Text()
-	sc.Scan()
-	dim, _ := strconv.ParseFloat(sc.Text(), 64)
+	ch := make(chan string, 2)
+	go func() {
+		defer close(ch)
+		time.Sleep(30 * time.Millisecond)
+		ch <- "slow"
+	}()
 
-	var s Shape
-	switch kind {
-	case "circle":
-		s = Circle{Radius: dim}
-	case "square":
-		s = Square{Side: dim}
-	}
+	go func() {
+		defer close(ch)
+		time.Sleep(10 * time.Millisecond)
+		ch <- "fast"
+	}()
 
-	if s != nil {
-		fmt.Printf("%.2f\n", s.Area())
+	select {
+	case v := <-ch:
+		fmt.Print(v)
+	case <-time.After(100 * time.Millisecond):
+
+		fmt.Print("timeout")
 	}
 }
